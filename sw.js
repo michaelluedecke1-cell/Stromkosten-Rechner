@@ -1,9 +1,10 @@
-const CACHE_NAME = 'stromkosten-v2';
+const CACHE_NAME = 'stromkosten-v3';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', event => {
