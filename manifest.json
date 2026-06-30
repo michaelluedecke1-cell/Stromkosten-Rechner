@@ -2,10 +2,11 @@
   "name": "Stromkosten-Rechner",
   "short_name": "Stromkosten",
   "description": "Verwalte deine elektrischen Geräte und berechne die Stromkosten – offline und datenschutzfreundlich.",
-  "start_url": "index.html",
+  "start_url": "/Stronkosten-Rechner/",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#2a7de1",
+  "scope": "/Stronkosten-Rechner/",
   "icons": [
     {
       "src": "icon-192.png",
