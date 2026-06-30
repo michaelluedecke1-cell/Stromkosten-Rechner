@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Stromkostenrechner</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    /* ---------- CSS-Variablen für Light & Dark Mode ---------- */
+    :root {
+      --bg-body: #f4f7fb;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --bg-total: #e8f0fe;
+      --bg-modal: #ffffff;
+      --bg-cost-grid: #f4f7fb;
+      --text-primary: #1a2332;
+      --text-secondary: #3a4a5e;
+      --text-muted: #4a5a6e;
+      --text-light: #6a7a8e;
+      --border-color: #d0d9e8;
+      --border-light: #e9edf4;
+      --shadow-color: rgba(0,0,0,0.04);
+      --shadow-modal: rgba(0,0,0,0.15);
+      --hover-bg: #f8faff;
+      --btn-primary: #2a7de1;
+      --btn-primary-hover: #1a5fb0;
+      --btn-danger: #e14a2a;
+      --btn-danger-hover: #b83a1e;
+      --btn-success: #1e9b5e;
+      --btn-success-hover: #167a48;
+      --btn-outline-border: #2a7de1;
+      --btn-outline-color: #2a7de1;
+      --btn-outline-hover: #eef4fc;
+      --ampel-gruen: #2ecc71;
+      --ampel-gelb: #f1c40f;
+      --ampel-rot: #e74c3c;
+      --cost-number: #0b2b44;
+      --footer-color: #8a9aae;
+      --modal-overlay: rgba(0,0,0,0.4);
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      --bg-body: #121212;
+      --bg-card: #1e1e1e;
+      --bg-input: #2a2a2a;
+      --bg-total: #1a2a3a;
+      --bg-modal: #1e1e1e;
+      --bg-cost-grid: #2a2a2a;
+      --text-primary: #e8e8e8;
+      --text-secondary: #b0b0b0;
+      --text-muted: #909090;
+      --text-light: #707070;
+      --border-color: #3a3a3a;
+      --border-light: #2a2a2a;
+      --shadow-color: rgba(0,0,0,0.3);
+      --shadow-modal: rgba(0,0,0,0.6);
+      --hover-bg: #2a2a2a;
+      --btn-primary: #3a8de1;
+      --btn-primary-hover: #5aade1;
+      --btn-danger: #e14a2a;
+      --btn-danger-hover: #c94a2a;
+      --btn-success: #2e8b5e;
+      --btn-success-hover: #3a9b6e;
+      --btn-outline-border: #5a8de1;
+      --btn-outline-color: #5a8de1;
+      --btn-outline-hover: #2a3a5a;
+      --ampel-gruen: #2ecc71;
+      --ampel-gelb: #f1c40f;
+      --ampel-rot: #e74c3c;
+      --cost-number: #e8e8e8;
+      --footer-color: #606060;
+      --modal-overlay: rgba(0,0,0,0.7);
+    }
+
+   /* ---------- Grundstil ---------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      padding: 16px;
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 14px;
+      transition: background 0.3s, color 0.3s;
+      overscroll-behavior-y: none;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 0.3rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dark-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: var(--text-primary);
+    }
+    .dark-toggle:hover {
+      background: var(--hover-bg);
+    }
+    .subhead {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.2rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: 0.2s;
+      flex: 1;
+      text-align: center;
+      min-width: 60px;
+    }
+    .tab-btn.active { color: var(--btn-primary); border-bottom-color: var(--btn-primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px var(--shadow-color);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.8rem;
+      color: var(--text-primary);
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin: 0.6rem 0 0.15rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    input, button, select {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      transition: 0.2s, background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--btn-primary); box-shadow: 0 0 0 3px rgba(42,125,225,0.15); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 100px; }
+    .btn {
+      background: var(--btn-primary);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 30px;
+      width: auto;
+      min-width: 80px;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--btn-primary-hover); }
+    .btn-danger { background: var(--btn-danger); }
+    .btn-danger:hover { background: var(--btn-danger-hover); }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--btn-outline-border);
+      color: var(--btn-outline-color);
+    }
+    .btn-outline:hover { background: var(--btn-outline-hover); }
+    .btn-small { padding: 4px 10px; font-size: 0.8rem; min-width: 32px; border-radius: 16px; }
+    .btn-success { background: var(--btn-success); }
+    .btn-success:hover { background: var(--btn-success-hover); }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .toolbar .search-bar {
+      display: flex;
+      gap: 6px;
+      flex: 2;
+      min-width: 150px;
+    }
+    .toolbar .search-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+    .toolbar .search-bar .btn {
+      min-width: 36px;
+      padding: 0 12px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+    }
+    .toolbar .sort-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex: 1;
+      min-width: 140px;
+    }
+    .toolbar .sort-group select {
+      width: auto;
+      padding: 6px 10px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    .toolbar .sort-group .btn {
+      padding: 6px 12px;
+      min-width: 40px;
+      font-size: 0.85rem;
+    }
+    .search-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .total-costs {
+      background: var(--bg-total);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      font-size: 0.9rem;
+      transition: background 0.3s;
+    }
+    .total-costs .label { font-weight: 600; color: var(--text-secondary); }
+    .total-costs .value { font-weight: 700; color: var(--cost-number); }
+
+    .device-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 12px;
+      padding: 10px 0 10px 10px;
+      border-bottom: 1px solid var(--border-light);
+      align-items: start;
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.3s;
+      border-left: 6px solid transparent;
+      border-radius: 0 8px 8px 0;
+      margin-left: 2px;
+    }
+    .device-item:hover { background: var(--hover-bg); margin-left: 0; padding-left: 12px; }
+    .device-item:last-child { border-bottom: none; }
+
+    .device-item.ampel-gruen  { border-left-color: var(--ampel-gruen); }
+    .device-item.ampel-gelb   { border-left-color: var(--ampel-gelb); }
+    .device-item.ampel-rot    { border-left-color: var(--ampel-rot); }
+
+    .device-left { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .device-name { font-weight: 600; font-size: 0.95rem; word-break: break-word; }
+    .device-details { font-size: 0.75rem; color: var(--text-muted); }
+    .device-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; }
+    .device-costs { text-align: right; font-size: 0.8rem; line-height: 1.4; }
+    .device-costs .cost-hour { font-size: 0.7rem; color: var(--text-light); font-weight: 400; }
+    .cost-number { font-weight: 700; color: var(--cost-number); }
+    .device-actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .device-actions .btn { min-width: 30px; padding: 2px 8px; font-size: 0.75rem; }
+    .empty-message { color: var(--text-light); text-align: center; padding: 16px 0; font-size: 0.9rem; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--modal-overlay);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--bg-modal);
+      border-radius: 20px;
+      max-width: 460px;
+      width: 100%;
+      padding: 24px 20px 20px;
+      box-shadow: 0 16px 32px var(--shadow-modal);
+      position: relative;
+      animation: fadeIn 0.2s ease;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+    .modal-close {
+      position: absolute;
+      top: 10px; right: 14px;
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+    .modal-close:hover { color: var(--text-primary); }
+    .modal h2 { font-size: 1.4rem; margin-bottom: 0.2rem; color: var(--text-primary); word-break: break-word; }
+    .modal .sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+    .modal .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: var(--bg-cost-grid);
+      padding: 12px;
+      border-radius: 12px;
+      margin: 12px 0;
+      transition: background 0.3s;
+    }
+    .modal .cost-grid div { text-align: center; }
+    .modal .cost-grid .label { font-size: 0.7rem; color: var(--text-muted); }
+    .modal .cost-grid .value { font-size: 1.2rem; font-weight: 700; color: var(--cost-number); }
+    .modal .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+    .modal .detail-row:last-child { border-bottom: none; }
+    .modal .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .modal .action-buttons .btn { flex: 1; min-width: 80px; font-size: 0.9rem; }
+
+    .backup-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .backup-bar .btn { flex: 1; min-width: 100px; font-size: 0.85rem; }
+    .inline-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .inline-group label { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+    .inline-group input { width: 100px; }
+    .action-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .action-row .btn { flex: 1; }
+    .footer {
+      margin-top: 24px;
+      font-size: 0.7rem;
+      color: var(--footer-color);
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; padding: 10px; }
+      .device-item { break-inside: avoid; }
+    }
+    @media (max-width: 600px) {
+      .device-item { grid-template-columns: 1fr; gap: 6px; }
+      .device-right { align-items: stretch; width: 100%; }
+      .device-costs { text-align: left; display: flex; flex-wrap: wrap; gap: 2px 12px; }
+      .device-actions { justify-content: flex-start; }
+      .modal .cost-grid { grid-template-columns: repeat(2, 1fr); }
+      .modal { padding: 18px 14px; }
+      .toolbar { flex-direction: column; }
+      .toolbar .sort-group { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Kopfzeile mit Dark-Mode-Toggle -->
+  <div class="header">
+    <h1>⚡ Stromkosten-Rechner</h1>
+    <button class="dark-toggle" id="darkToggle" title="Dark Mode umschalten">🌙</button>
+  </div>
+  <div class="subhead no-print">Geräte verwalten und Kosten berechnen</div>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" data-tab="geräte">📋 Geräte</button>
+    <button class="tab-btn" data-tab="backup">💾 Backup</button>
+  </div>
+
+  <!-- TAB 1: Geräte -->
+  <div id="tab-geräte" class="tab-content active">
+    <div class="card no-print">
+      <h2>➕ Gerät hinzufügen / bearbeiten</h2>
+      <div>
+        <label>Gerätename</label>
+        <input type="text" id="deviceName" placeholder="z.B. Kühlschrank" style="width:100%;">
+      </div>
+      <div class="row">
+        <div>
+          <label>Leistung (Watt)</label>
+          <input type="number" id="deviceWatt" placeholder="z.B. 150">
+        </div>
+        <div>
+          <label>Stunden / Tag</label>
+          <input type="number" id="deviceHours" placeholder="z.B. 24">
+        </div>
+      </div>
+      <div class="inline-group" style="margin-top:12px;">
+        <label>Strompreis (€/kWh):</label>
+        <input type="number" id="pricePerKwh" step="0.01" value="0.30" style="width:100px;">
+      </div>
+      <div class="action-row">
+        <button class="btn" id="addBtn">Hinzufügen</button>
+        <button class="btn btn-outline" id="cancelBtn" style="display:none;">Abbrechen</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📋 Meine Geräte</h2>
+      <div id="totalCosts" class="total-costs"></div>
+
+      <div class="toolbar no-print">
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="🔍 Suchen (Name, Watt, Stunden)...">
+          <button class="btn btn-outline" id="clearSearchBtn" title="Suche zurücksetzen">✕</button>
+        </div>
+        <div class="sort-group">
+          <select id="sortSelect">
+            <option value="name">Name</option>
+            <option value="watt">Leistung</option>
+            <option value="cost">Kosten (Jahr)</option>
+          </select>
+          <button class="btn btn-outline" id="sortDirBtn" title="Sortierrichtung umkehren">↓</button>
+        </div>
+      </div>
+      <div class="toolbar no-print" style="margin-top:6px;">
+        <button class="btn btn-outline btn-small" id="printBtn" style="flex:1;">🖨️ Drucken</button>
+        <button class="btn btn-outline btn-small" id="csvBtn" style="flex:1;">📊 CSV export</button>
+      </div>
+
+      <div id="searchInfo" class="search-info"></div>
+      <div id="deviceList">
+        <div class="empty-message">Noch keine Geräte vorhanden.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Backup -->
+  <div id="tab-backup" class="tab-content no-print">
+    <div class="card">
+      <h2>💾 Backup & Wiederherstellung</h2>
+      <p style="margin-bottom:12px; color:var(--text-muted); font-size:0.9rem;">
+        Exportieren Sie alle Geräte inklusive Strompreis als JSON-Datei oder importieren Sie ein vorheriges Backup.
+      </p>
+      <div class="backup-bar">
+        <button class="btn btn-outline" id="exportBtn">📤 Exportieren</button>
+        <button class="btn btn-outline" id="importBtn">📥 Importieren</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none;">
+      </div>
+      <hr style="margin:16px 0; border-color:var(--border-light);">
+      <button class="btn btn-danger" id="deleteAllBtn" style="width:100%;">🗑️ Alle Geräte löschen</button>
+      <p style="font-size:0.75rem; margin-top:8px; color:var(--text-light);">Achtung: Diese Aktion kann nicht rückgängig gemacht werden.</p>
+    </div>
+  </div>
+
+  <!-- MODAL (Detailansicht) -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h2 id="modalName">Gerätename</h2>
+      <div class="sub" id="modalSub">150 W · 24 h/Tag</div>
+      <div class="cost-grid">
+        <div><div class="label">Pro Stunde</div><div class="value" id="modalHour">0.00 €</div></div>
+        <div><div class="label">Pro Tag</div><div class="value" id="modalDay">0.00 €</div></div>
+        <div><div class="label">Pro Monat</div><div class="value" id="modalMonth">0.00 €</div></div>
+        <div><div class="label">Pro Jahr</div><div class="value" id="modalYear">0.00 €</div></div>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="detail-row"><span>Leistung</span><span id="modalWatt">0 W</span></div>
+        <div class="detail-row"><span>Betriebsstunden pro Tag</span><span id="modalHours">0 h</span></div>
+        <div class="detail-row"><span>Strompreis</span><span id="modalPrice">0.00 €/kWh</span></div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-success" id="modalEditBtn">✏️ Bearbeiten</button>
+        <button class="btn btn-danger" id="modalDeleteBtn">🗑️ Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer no-print">Daten werden lokal in Ihrem Browser gespeichert.</div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ---------- Dark Mode ----------
+      const darkToggle = document.getElementById('darkToggle');
+      const DARK_KEY = 'stromkosten_darkmode';
+
+      function loadDarkMode() {
+        const saved = localStorage.getItem(DARK_KEY);
+        if (saved === 'true') {
+          document.body.classList.add('dark-mode');
+          darkToggle.textContent = '☀️';
+        } else {
+          document.body.classList.remove('dark-mode');
+          darkToggle.textContent = '🌙';
+        }
+      }
+
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem(DARK_KEY, isDark ? 'true' : 'false');
+        darkToggle.textContent = isDark ? '☀️' : '🌙';
+      }
+
+      darkToggle.addEventListener('click', toggleDarkMode);
+      loadDarkMode();
+
+      // ---------- DOM-Referenzen ----------
+      const deviceName = document.getElementById('deviceName');
+      const deviceWatt = document.getElementById('deviceWatt');
+      const deviceHours = document.getElementById('deviceHours');
+      const priceInput = document.getElementById('pricePerKwh');
+      const addBtn = document.getElementById('addBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const deviceList = document.getElementById('deviceList');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      const searchInfo = document.getElementById('searchInfo');
+      const sortSelect = document.getElementById('sortSelect');
+      const sortDirBtn = document.getElementById('sortDirBtn');
+      const totalCosts = document.getElementById('totalCosts');
+      const printBtn = document.getElementById('printBtn');
+      const csvBtn = document.getElementById('csvBtn');
+      const exportBtn = document.getElementById('exportBtn');
+      const importBtn = document.getElementById('importBtn');
+      const fileInput = document.getElementById('fileInput');
+      const deleteAllBtn = document.getElementById('deleteAllBtn');
+
+      const modal = document.getElementById('detailModal');
+      const modalClose = document.getElementById('modalClose');
+      const modalName = document.getElementById('modalName');
+      const modalSub = document.getElementById('modalSub');
+      const modalHour = document.getElementById('modalHour');
+      const modalDay = document.getElementById('modalDay');
+      const modalMonth = document.getElementById('modalMonth');
+      const modalYear = document.getElementById('modalYear');
+      const modalWatt = document.getElementById('modalWatt');
+      const modalHours = document.getElementById('modalHours');
+      const modalPrice = document.getElementById('modalPrice');
+      const modalEditBtn = document.getElementById('modalEditBtn');
+      const modalDeleteBtn = document.getElementById('modalDeleteBtn');
+
+      // ---------- State ----------
+      let devices = [];
+      let pricePerKwh = 0.30;
+      let editMode = false;
+      let editIndex = -1;
+      let modalIndex = -1;
+      let searchTerm = '';
+      let sortAsc = true;
+
+      // ---------- IndexedDB-Helfer ----------
+      const DB_NAME = 'StromkostenDB';
+      const STORE_NAME = 'appData';
+      const DB_VERSION = 1;
+
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = (ev) => {
+            const db = ev.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = (ev) => resolve(ev.target.result);
+          request.onerror = (ev) => reject(ev.target.error);
+        });
+      }
+
+      async function loadFromIndexedDB() {
+        try {
+          const db = await openDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const getReq = store.get('main');
+            getReq.onsuccess = () => {
+              const result = getReq.result;
+              if (result) {
+                resolve(result.data);
+              } else {
+                resolve(null);
+              }
+            };
+            getReq.onerror = () => reject(getReq.error);
+            tx.oncomplete = () => db.close();
+          });
+        } catch (e) {
+          console.warn('IndexedDB-Laden fehlgeschlagen:', e);
+          return null;
+        }
+      }
+
+      async function saveToIndexedDB(data) {
+        try {
+          const db = await openDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const putReq = store.put({ id: 'main', data: data });
+            putReq.onsuccess = () => resolve();
+            putReq.onerror = () => reject(putReq.error);
+            tx.oncomplete = () => db.close();
+          });
+        } catch (e) {
+          console.warn('IndexedDB-Speichern fehlgeschlagen:', e);
+          throw e;
+        }
+      }
+
+      // ---------- Persistent Storage ----------
+      async function requestPersistentStorage() {
+        try {
+          if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persisted();
+            if (!isPersisted) {
+              const granted = await navigator.storage.persist();
+              console.log('Persistent Storage granted?', granted);
+            } else {
+              console.log('Storage is already persistent.');
+            }
+          }
+        } catch (e) {
+          console.warn('Persistent Storage API nicht unterstützt:', e);
+        }
+      }
+
+      // ---------- Hilfsfunktionen ----------
+      function formatCurrency(value) {
+        const abs = Math.abs(value);
+        const decimals = abs < 0.01 ? 3 : 2;
+        return value.toFixed(decimals) + ' €';
+      }
+
+      function calculateCosts(watt, hoursPerDay, price) {
+        const kwhPerHour = watt / 1000;
+        const costPerHour = kwhPerHour * price;
+        const costPerDay = costPerHour * hoursPerDay;
+        const costPerMonth = costPerDay * 30;
+        const costPerYear = costPerDay * 365;
+        return { costPerHour, costPerDay, costPerMonth, costPerYear };
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ---------- Sortierung ----------
+      function sortDevices(list) {
+        const sortBy = sortSelect.value;
+        const multiplier = sortAsc ? 1 : -1;
+        return [...list].sort((a, b) => {
+          let valA, valB;
+          if (sortBy === 'name') {
+            valA = a.name.toLowerCase();
+            valB = b.name.toLowerCase();
+            return valA.localeCompare(valB) * multiplier;
+          } else if (sortBy === 'watt') {
+            return (a.watt - b.watt) * multiplier;
+          } else if (sortBy === 'cost') {
+            const costA = calculateCosts(a.watt, a.hoursPerDay, pricePerKwh).costPerYear;
+            const costB = calculateCosts(b.watt, b.hoursPerDay, pricePerKwh).costPerYear;
+            return (costA - costB) * multiplier;
+          }
+          return 0;
+        });
+      }
+
+      // ---------- Ampel-Farben (Drittel-Prinzip) ----------
+      function getAmpelClass(device, allDevices) {
+        if (allDevices.length < 3) return '';
+        const costs = allDevices.map(d => ({
+          ...d,
+          yearCost: calculateCosts(d.watt, d.hoursPerDay, pricePerKwh).costPerYear
+        }));
+        costs.sort((a, b) => a.yearCost - b.yearCost);
+        const n = costs.length;
+        const lowerThird = Math.floor(n / 3);
+        const upperThird = Math.ceil(2 * n / 3);
+        const idx = costs.findIndex(d => d.name === device.name && d.watt === device.watt);
+        if (idx === -1) return '';
+        if (idx < lowerThird) return 'ampel-gruen';
+        if (idx >= upperThird) return 'ampel-rot';
+        return 'ampel-gelb';
+      }
+
+      // ---------- Rendering ----------
+      function render() {
+        const term = searchTerm.trim().toLowerCase();
+        let filtered = devices;
+        if (term.length >= 2) {
+          filtered = devices.filter(d => {
+            const nameMatch = d.name.toLowerCase().includes(term);
+            const wattMatch = d.watt.toString().includes(term);
+            const hoursMatch = d.hoursPerDay.toString().includes(term);
+            return nameMatch || wattMatch || hoursMatch;
+          });
+        }
+
+        filtered = sortDevices(filtered);
+
+        let totalDay = 0, totalMonth = 0, totalYear = 0;
+        devices.forEach(d => {
+          const c = calculateCosts(d.watt, d.hoursPerDay, pricePerKwh);
+          totalDay += c.costPerDay;
+          totalMonth += c.costPerMonth;
+          totalYear += c.costPerYear;
+        });
+        totalCosts.innerHTML = `
+          <span><span class="label">💰 Gesamtkosten:</span></span>
+          <span><span class="value">${totalDay.toFixed(2)} €</span> / Tag</span>
+          <span><span class="value">${totalMonth.toFixed(2)} €</span> / Monat</span>
+          <span><span class="value">${totalYear.toFixed(2)} €</span> / Jahr</span>
+        `;
+
+        if (devices.length === 0) {
+          searchInfo.textContent = '';
+          deviceList.innerHTML = `<div class="empty-message">Noch keine Geräte vorhanden.</div>`;
+          return;
+        }
+        if (filtered.length === 0 && term.length >= 2) {
+          searchInfo.textContent = `Keine Treffer für „${searchTerm}“`;
+          deviceList.innerHTML = `<div class="empty-message">Keine Geräte gefunden.</div>`;
+          return;
+        }
+        if (term.length >= 2) {
+          searchInfo.textContent = `Zeige ${filtered.length} von ${devices.length} Geräten`;
+        } else {
+          searchInfo.textContent = `${devices.length} Geräte insgesamt`;
+        }
+
+        const ampelMap = new Map();
+        devices.forEach(d => {
+          ampelMap.set(d, getAmpelClass(d, devices));
+        });
+
+        let html = '';
+        filtered.forEach((device) => {
+          const originalIndex = devices.indexOf(device);
+          const { costPerHour, costPerDay, costPerMonth, costPerYear } = calculateCosts(
+            device.watt, device.hoursPerDay, pricePerKwh
+          );
+          const ampelClass = ampelMap.get(device) || '';
+          const hourStr = formatCurrency(costPerHour);
+          const dayStr = costPerDay.toFixed(2) + ' €';
+          const monthStr = costPerMonth.toFixed(2) + ' €';
+          const yearStr = costPerYear.toFixed(2) + ' €';
+          html += `
+            <div class="device-item ${ampelClass}" data-index="${originalIndex}">
+              <div class="device-left">
+                <div class="device-name">${escapeHtml(device.name)}</div>
+                <div class="device-details">${device.watt} W · ${device.hoursPerDay} h/Tag</div>
+              </div>
+              <div class="device-right">
+                <div class="device-costs">
+                  <div><span class="cost-number">${dayStr}</span> / Tag</div>
+                  <div><span class="cost-number">${monthStr}</span> / Monat</div>
+                  <div><span class="cost-number">${yearStr}</span> / Jahr</div>
+                  <div class="cost-hour">≈ ${hourStr} / Stunde</div>
+                </div>
+                <div class="device-actions">
+                  <button class="btn btn-outline btn-small edit-btn" data-edit="${originalIndex}" title="Bearbeiten">✏️</button>
+                  <button class="btn btn-danger btn-small delete-btn" data-delete="${originalIndex}" title="Löschen">✕</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        deviceList.innerHTML = html;
+
+        document.querySelectorAll('.device-item').forEach(el => {
+          el.addEventListener('click', function(e) {
+            if (e.target.closest('.btn')) return;
+            const idx = parseInt(this.dataset.index, 10);
+            openModal(idx);
+          });
+        });
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const idx = parseInt(this.dataset.edit, 10);
+            startEdit(idx);
+          });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const idx = parseInt(this.dataset.delete, 10);
+            if (confirm(`Möchten Sie "${devices[idx].name}" wirklich löschen?`)) {
+              devices.splice(idx, 1);
+              saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+                render();
+                if (editMode && editIndex === idx) resetForm();
+                if (modalIndex === idx) closeModal();
+              }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+            }
+          });
+        });
+      }
+
+      // ---------- Modal ----------
+      function openModal(index) {
+        const device = devices[index];
+        if (!device) return;
+        modalIndex = index;
+        const { costPerHour, costPerDay, costPerMonth, costPerYear } = calculateCosts(
+          device.watt, device.hoursPerDay, pricePerKwh
+        );
+        modalName.textContent = device.name;
+        modalSub.textContent = `${device.watt} W · ${device.hoursPerDay} h/Tag`;
+        modalHour.textContent = formatCurrency(costPerHour);
+        modalDay.textContent = costPerDay.toFixed(2) + ' €';
+        modalMonth.textContent = costPerMonth.toFixed(2) + ' €';
+        modalYear.textContent = costPerYear.toFixed(2) + ' €';
+        modalWatt.textContent = device.watt + ' W';
+        modalHours.textContent = device.hoursPerDay + ' h';
+        modalPrice.textContent = pricePerKwh.toFixed(2) + ' €/kWh';
+        modal.classList.add('active');
+      }
+
+      function closeModal() {
+        modal.classList.remove('active');
+        modalIndex = -1;
+      }
+
+      // ---------- Formular ----------
+      function resetForm() {
+        deviceName.value = '';
+        deviceWatt.value = '';
+        deviceHours.value = '';
+        addBtn.textContent = 'Hinzufügen';
+        addBtn.className = 'btn';
+        cancelBtn.style.display = 'none';
+        editMode = false;
+        editIndex = -1;
+      }
+
+      function startEdit(index) {
+        const device = devices[index];
+        deviceName.value = device.name;
+        deviceWatt.value = device.watt;
+        deviceHours.value = device.hoursPerDay;
+        addBtn.textContent = 'Aktualisieren';
+        addBtn.className = 'btn btn-success';
+        cancelBtn.style.display = 'inline-block';
+        editMode = true;
+        editIndex = index;
+        closeModal();
+      }
+
+      function saveDevice() {
+        const name = deviceName.value.trim();
+        const watt = parseFloat(deviceWatt.value);
+        const hours = parseFloat(deviceHours.value);
+        if (!name) { alert('Bitte einen Gerätenamen eingeben.'); return; }
+        if (isNaN(watt) || watt <= 0) { alert('Bitte eine gültige Leistung in Watt eingeben.'); return; }
+        if (isNaN(hours) || hours < 0) { alert('Bitte gültige Stunden pro Tag eingeben (0 möglich).'); return; }
+
+        if (editMode) {
+          devices[editIndex] = { name, watt, hoursPerDay: hours };
+        } else {
+          devices.push({ name, watt, hoursPerDay: hours });
+        }
+        saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+          render();
+          resetForm();
+          if (!editMode) deviceName.focus();
+        }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+      }
+
+      // ---------- Preis ----------
+      function updatePrice() {
+        const val = parseFloat(priceInput.value);
+        if (!isNaN(val) && val > 0) {
+          pricePerKwh = val;
+          saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+            render();
+            if (modalIndex >= 0) openModal(modalIndex);
+          }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+        }
+      }
+
+      // ---------- Suche ----------
+      function updateSearch() {
+        searchTerm = searchInput.value;
+        render();
+      }
+      function clearSearch() {
+        searchInput.value = '';
+        searchTerm = '';
+        render();
+        searchInput.focus();
+      }
+
+      // ---------- Sortierung ----------
+      function toggleSortDir() {
+        sortAsc = !sortAsc;
+        sortDirBtn.textContent = sortAsc ? '↓' : '↑';
+        render();
+      }
+
+      // ---------- Drucken ----------
+      function printList() {
+        window.print();
+      }
+
+      // ---------- CSV-Export ----------
+      function exportCSV() {
+        if (devices.length === 0) { alert('Keine Geräte zum Exportieren.'); return; }
+        let csv = 'Name;Leistung (W);Stunden/Tag;Kosten/Tag (€);Kosten/Monat (€);Kosten/Jahr (€);Kosten/Stunde (€)\n';
+        devices.forEach(d => {
+          const c = calculateCosts(d.watt, d.hoursPerDay, pricePerKwh);
+          csv += `"${d.name}";${d.watt};${d.hoursPerDay};${c.costPerDay.toFixed(2)};${c.costPerMonth.toFixed(2)};${c.costPerYear.toFixed(2)};${c.costPerHour.toFixed(3)}\n`;
+        });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `stromkosten_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // ---------- Backup ----------
+      function exportData() {
+        const data = { devices, pricePerKwh, exportedAt: new Date().toISOString() };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `stromkosten_backup_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function importData(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.devices || !Array.isArray(data.devices)) {
+              alert('Ungültiges Backup-Format: Keine Geräte-Liste gefunden.');
+              return;
+            }
+            const valid = data.devices.every(d => 
+              typeof d.name === 'string' && typeof d.watt === 'number' && typeof d.hoursPerDay === 'number'
+            );
+            if (!valid) {
+              alert('Ungültiges Backup-Format: Geräte-Einträge unvollständig.');
+              return;
+            }
+            if (!confirm('Das Backup überschreibt alle aktuellen Geräte. Fortfahren?')) return;
+            devices = data.devices;
+            if (data.pricePerKwh && typeof data.pricePerKwh === 'number' && data.pricePerKwh > 0) {
+              pricePerKwh = data.pricePerKwh;
+              priceInput.value = pricePerKwh;
+            }
+            saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+              render();
+              resetForm();
+              closeModal();
+              alert('Backup erfolgreich importiert!');
+            }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+          } catch(err) {
+            alert('Fehler beim Import: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function deleteAll() {
+        if (devices.length === 0) return;
+        if (confirm('Wirklich ALLE Geräte unwiderruflich löschen?')) {
+          devices = [];
+          saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+            render();
+            resetForm();
+            closeModal();
+          }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+        }
+      }
+
+      // ---------- Tabs ----------
+      function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+      }
+
+      // ---------- Initialisierung ----------
+      async function init() {
+        await requestPersistentStorage();
+
+        let loadedData = null;
+        try {
+          const idbData = await loadFromIndexedDB();
+          if (idbData) {
+            loadedData = idbData;
+            console.log('Daten aus IndexedDB geladen');
+          }
+        } catch (e) { /* ignorieren */ }
+
+        if (!loadedData) {
+          try {
+            const stored = localStorage.getItem('stromkosten_devices');
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              if (parsed.devices && parsed.pricePerKwh !== undefined) {
+                loadedData = parsed;
+                console.log('Daten aus localStorage migriert');
+                await saveToIndexedDB(loadedData);
+              }
+            }
+          } catch (e) { /* ignorieren */ }
+        }
+
+        if (loadedData) {
+          devices = loadedData.devices || [];
+          pricePerKwh = loadedData.pricePerKwh || 0.30;
+          priceInput.value = pricePerKwh;
+        } else {
+          devices = [];
+          pricePerKwh = 0.30;
+          priceInput.value = pricePerKwh;
+        }
+
+        render();
+        resetForm();
+
+        // Event-Listener
+        addBtn.addEventListener('click', saveDevice);
+        cancelBtn.addEventListener('click', resetForm);
+        [deviceName, deviceWatt, deviceHours].forEach(inp => {
+          inp.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveDevice(); });
+        });
+        priceInput.addEventListener('change', updatePrice);
+
+        searchInput.addEventListener('input', updateSearch);
+        clearSearchBtn.addEventListener('click', clearSearch);
+        sortSelect.addEventListener('change', render);
+        sortDirBtn.addEventListener('click', toggleSortDir);
+
+        printBtn.addEventListener('click', printList);
+        csvBtn.addEventListener('click', exportCSV);
+
+        exportBtn.addEventListener('click', exportData);
+        importBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function(e) {
+          if (this.files && this.files.length > 0) {
+            importData(this.files[0]);
+          }
+          this.value = '';
+        });
+        deleteAllBtn.addEventListener('click', deleteAll);
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) {
+          if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeModal();
+        });
+
+        modalEditBtn.addEventListener('click', function() {
+          if (modalIndex >= 0) {
+            startEdit(modalIndex);
+            closeModal();
+          }
+        });
+        modalDeleteBtn.addEventListener('click', function() {
+          if (modalIndex >= 0) {
+            if (confirm(`Möchten Sie "${devices[modalIndex].name}" wirklich löschen?`)) {
+              const idx = modalIndex;
+              devices.splice(idx, 1);
+              saveToIndexedDB({ devices, pricePerKwh }).then(() => {
+                render();
+                closeModal();
+                if (editMode && editIndex === idx) resetForm();
+              }).catch(err => alert('Fehler beim Speichern: ' + err.message));
+            }
+          }
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+            switchTab(tab);
+          });
+        });
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker registriert'))
+            .catch(err => console.warn('Service Worker Fehler:', err));
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
