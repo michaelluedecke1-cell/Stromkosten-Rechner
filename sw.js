@@ -1,5 +1,5 @@
 // Service Worker für den Stromkosten-Rechner
-const CACHE_NAME = 'stromkosten-v2';
+const CACHE_NAME = 'stromkosten-v3';
 const urlsToCache = [
   'index.html',
   'manifest.json',
