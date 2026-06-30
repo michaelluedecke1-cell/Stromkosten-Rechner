@@ -2,7 +2,7 @@
   "name": "Stromkosten-Rechner",
   "short_name": "Stromkosten",
   "description": "Berechnen Sie die Stromkosten Ihrer Geräte – offlinefähig.",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#2a7de1",
@@ -14,7 +14,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "icon-192.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
