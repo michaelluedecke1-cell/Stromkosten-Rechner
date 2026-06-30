@@ -3,8 +3,8 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon-192.png'
+  // './icon-512.png' wurde entfernt, da sie nicht existiert
 ];
 
 self.addEventListener('install', event => {
@@ -12,7 +12,6 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
-  // Erzwingt, dass der neue Service Worker sofort aktiv wird
   self.skipWaiting();
 });
 
@@ -32,6 +31,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  // Sorgt dafür, dass geöffnete Seiten sofort vom neuen SW kontrolliert werden
   self.clients.claim();
 });
